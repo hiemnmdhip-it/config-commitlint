@@ -5,34 +5,41 @@ on:
     branches:
       - main
       - master
+  workflow_dispatch:
 
 jobs:
   release:
-    name: Registrar Entrega
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
       pull-requests: write
+      issues: write
 
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: true
 
-      - name: Configurar Node.js en la Nube
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Instalar Herramientas de Release
+      - name: Install
         run: |
-          npm install -g semantic-release \
-          @semantic-release/changelog \
-          @semantic-release/git
+          npm install -g semantic-release @semantic-release/changelog @semantic-release/github
 
-      - name: Ejecutar Versión y Actualizar Changelog
+      - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
+
+      - name: Create PR if changelog changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: release/changelog
+          title: "chore(release): update changelog"
+          body: "Auto-generated changelog"
+          base: main
+          add-paths: |
+            CHANGELOG.md
