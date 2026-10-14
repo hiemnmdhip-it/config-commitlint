@@ -1,0 +1,38 @@
+name: Entrega Semántica Automática
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release:
+    name: Registrar Entrega
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js en la Nube
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar Herramientas de Release
+        run: |
+          npm install -g semantic-release \
+          @semantic-release/changelog \
+          @semantic-release/git
+
+      - name: Ejecutar Versión y Actualizar Changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
